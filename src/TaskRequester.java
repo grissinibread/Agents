@@ -6,6 +6,8 @@ public class TaskRequester {
     }
 
     public void run() {
-        // TODO: This function
+        Agent_IF agent = (Agent_IF) server.waitForObject();
+        agent.startTask();
+
     }
 }
