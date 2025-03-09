@@ -18,23 +18,32 @@ public class ObjectPool implements ObjectPool_IF {
     }
 
     @Override
+    // TODO: This function
     public int getSize() {
-        return size;
+        synchronized (this.pool) {
+            return this.pool.length;
+        }
     }
 
     @Override
     public int getCapacity() {
-        return maxInstances;
+        return this.maxInstances;
     }
 
     @Override
     public void setCapacity(int newCapacity) {
-        maxInstances = newCapacity;
+        this.maxInstances = newCapacity;
     }
 
     @Override
+    // TODO: This function
     public Object getObject() {
-        // TODO: This function
+        synchronized (this.pool) {
+            Object thisObject = removeObject();
+            if (thisObject != null) {
+                return thisObject;
+            }
+        }
         return null;
     }
 
@@ -54,7 +63,10 @@ public class ObjectPool implements ObjectPool_IF {
 
     }
 
+    // TODO: This function
     private Object createObject() {
-        return null;
+        Object newObject  = null;
+        this.instanceCount++;
+        return newObject;
     }
 }
