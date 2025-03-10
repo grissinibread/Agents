@@ -1,5 +1,5 @@
 package Java.lang;
 
-public interface runnable {
+public interface Runnable {
     public void run();
 }

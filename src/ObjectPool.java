@@ -3,23 +3,24 @@ import java.util.concurrent.locks.ReentrantLock; // thread to acquire same lock 
 import java.util.concurrent.locks.Condition;    // manage thread waiting
 
 public class ObjectPool implements ObjectPool_IF {
-    private Object lockObject = new Object(); // lock object for synchronization
+    // private Object lockObject = new Object(); // lock object for synchronization
+    private Object[] pool; // pool to hold objects
+    private ObjectCreation_IF creator; // factory object creator
+
     private int size; // amount of free objects
     private int instanceCount; // objects created
     private int maxInstances; // maximum objects allowed in pool
-    private Object[] pool; // pool to hold objects
-    private ObjectCreation_IF creator; // factory object creator
+
     private Lock lock = new ReentrantLock(); // lock for thread safety
     private Condition notEmpty = lock.newCondition(); // condition for waiting
 
     // Constructor
     private ObjectPool(ObjectCreation_IF c, int max) {
-        instanceCount = 0;
-        maxInstances = max;
         pool = new Object[max];
         creator = c;
         size = 0;
         instanceCount = 0;
+        maxInstances = max; // set maximum instances
     }
 
     // Instance of ObjectPool
@@ -29,31 +30,42 @@ public class ObjectPool implements ObjectPool_IF {
 
     @Override
     public int getSize() {
-        synchronized (this.pool) {
-            return this.size;
+        lock.lock();
+        try {
+            return size;
+        } finally {
+            lock.unlock();
         }
     }
 
     @Override
     public int getCapacity() {
-        return this.maxInstances;
+        return maxInstances;
     }
 
     @Override
     public void setCapacity(int newCapacity) {
-        this.maxInstances = newCapacity;
+        lock.lock();
+        try {
+            maxInstances = newCapacity;
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
     public Object getObject() {
-        synchronized (this.pool) {
-            Object thisObject = removeObject();
-            if (thisObject != null) {
-                return thisObject;
+        lock.lock();
+        try {
+            if (size > 0) {
+                return removeObject();
             }
+            return createObject();
+        } finally {
+                lock.unlock();
         }
-        return null;
     }
+
 
     @Override
     public Object waitForObject() {
@@ -72,14 +84,13 @@ public class ObjectPool implements ObjectPool_IF {
     }
 
     private Object removeObject() {
-        synchronized (this.pool) {
-            if (size > 0) {
-                Object obj = pool[size - 1];
-                pool[size] = null; // remove object from pool
-                return obj;
-            }
-            return null;
+        if (size > 0) {
+            Object obj = pool[size - 1];
+            pool[size] = null; // remove object from pool
+            return obj;
         }
+        return null;
+
     }
 
     @Override
@@ -96,10 +107,17 @@ public class ObjectPool implements ObjectPool_IF {
     }
 
     private Object createObject() {
-        Object newObject  = creator.create(); // create object
-        if (newObject != null) {
-            return instanceCount++;
+        if (instanceCount < maxInstances) {
+            Object newObject = creator.create(); // create object
+            if (newObject != null) {
+                instanceCount++;
+            }
+            return newObject;
         }
-        return newObject;
+        return null;
     }
+    public int getInstanceCount() {
+        return instanceCount;
+    }
+
 }

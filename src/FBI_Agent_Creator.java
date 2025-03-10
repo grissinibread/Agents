@@ -1,9 +1,11 @@
-public class FBI_Agent_Creator {
+public class FBI_Agent_Creator implements ObjectCreation_IF {
     private char[] footPrints = {'@', '#', '$', '*', '.', '?'};
     private int index;
 
     public Object create() {
-        // TODO: This function
-        return null;
+        if (index >= footPrints.length) {
+            index = 0; // Reset index
+        }
+        return new FBI_Agent("FBI Agent " + footPrints[index++]);
     }
 }
