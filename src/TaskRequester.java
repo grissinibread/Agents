@@ -3,8 +3,8 @@ public class TaskRequester implements Runnable {
     private int taskID;
 
     TaskRequester(ObjectPool p, int id) {
-        server = p;
-        taskID = id;
+        this.server = p;
+        this.taskID = id;
     }
 
     @Override
